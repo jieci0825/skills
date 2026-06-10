@@ -1,0 +1,4 @@
+interface:
+  display_name: "函数逻辑注释规范"
+  short_description: "为较长或复杂函数的关键执行阶段添加清晰、克制的逻辑注释"
+  default_prompt: "使用 $logic-comment-rules 为本次新增或修改的复杂函数补充关键逻辑注释。"
