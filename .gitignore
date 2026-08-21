@@ -19,6 +19,9 @@ package-lock.json
 !.vscode/extensions.json
 .idea
 .cursor
+.agents
+.claude
+.trae
 .codex
 .workbuddy
 .DS_Store
