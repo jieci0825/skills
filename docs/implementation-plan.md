@@ -7,7 +7,7 @@
 
 | 决策项 | 结论 |
 |---|---|
-| 分类机制 | 目录约定：`rules/common/`、`rules/frontend/`、`rules/backend/`、`rules/business-*/` |
+| 分类机制 | 平铺多分类（一层目录）：`common/`、`frontend/`、`vue/`、`react/`、`backend/`、`business-*/`（按需）。分类是可组合的勾选项而非项目类型枚举，治理原则见附录 B |
 | 目标工具 | Codex、Claude Code、Cursor、Trae，仅项目级 |
 | 安装方式 | 纯复制（非 symlink），副本可独立修改 |
 | CLI 形态 | npm 包，`npx` 调用 |
@@ -17,19 +17,20 @@
 
 ---
 
-## 阶段 0：仓库重组（P0 · 前置，无 CLI 依赖）
+## 阶段 0：仓库重组（P0 · 前置，无 CLI 依赖）✅ 已完成
 
-**目标**：把扁平的 `rules/` 重组为分类目录结构，这是后续所有阶段的基础。
+**目标**：把扁平的 `rules/` 重组为平铺多分类目录结构，这是后续所有阶段的基础。
 
 **任务**
 
-- [ ] 创建分类目录：`rules/common/`、`rules/frontend/`、`rules/backend/`（先放占位说明）、`rules/business-*/`（按需）
-- [ ] 迁移现有 11 个 skills 到对应分类：
-  - `common/`：`git-commit`、`file-naming`、`comment-rules`、`logic-comment-rules`、`requirement-first-implementation`、`monorepo-deps`（归类待确认，暂放 common）
-  - `frontend/`：`vue3-vue-file-template`、`scss-nesting`、`export-rules`、`import-rules`、`vue-page-structure`
-- [ ] 迁移时保持 skill 内部结构不变（`SKILL.md`、`references/`、`agents/` 原样随目录移动）
-- [ ] 检查各 `SKILL.md` frontmatter（`name`、`description`）完整，这是后续 scanner 解析的依据
-- [ ] 提交 git（重组与功能改动分开提交，便于回溯）
+- [x] 创建分类目录：`rules/common/`、`rules/frontend/`、`rules/vue/`、`rules/backend/`、`rules/react/`（占位）；`rules/business-*/` 按需创建
+- [x] 迁移现有 11 个 skills 到对应分类：
+  - `common/`：`git-commit`、`file-naming`、`comment-rules`、`logic-comment-rules`、`requirement-first-implementation`、`monorepo-deps`（已定案归 common：通用的 monorepo 依赖策略，不绑定前端技术栈）
+  - `frontend/`：`scss-nesting`、`export-rules`、`import-rules`（前端领域通用，不绑定具体框架）
+  - `vue/`：`vue3-vue-file-template`、`vue-page-structure`（离开 Vue 无意义）
+- [x] 迁移时保持 skill 内部结构不变（`SKILL.md`、`references/`、`agents/` 原样随目录移动）
+- [x] 检查各 `SKILL.md` frontmatter（`name`、`description`）完整，这是后续 scanner 解析的依据
+- [x] 提交 git（重组与功能改动分开提交，便于回溯）
 
 **验收标准**
 
@@ -88,7 +89,7 @@
 
 **任务**
 
-- [ ] 交互式问答：多选分类 → 多选工具（检测项目内已存在的 `.codex/` 等目录作默认选中）
+- [ ] 交互式问答：多选分类（`common`/`frontend` 默认勾选；`vue`/`react` 等选型分类作为独立问题，可检测 `package.json` 依赖作推荐）→ 多选工具（检测项目内已存在的 `.codex/` 等目录作默认选中）
 - [ ] 问答结果生成并写入 `skills.config.json`，随后走 install 流程
 - [ ] `list` 命令：列出缓存源中所有 skills（名称、分类、描述）
 - [ ] `list --installed`：对照 manifest 显示项目已装及其状态（是否有更新、是否本地改动）
@@ -166,7 +167,6 @@
 
 | 事项 | 说明 | 建议定案时机 |
 |---|---|---|
-| `monorepo-deps` 归类 | 暂放 `common/`，若强绑定前端 monorepo 可移 `frontend/` | 阶段 0 |
 | Cursor `.mdc` 转换 | 若实测要求 `.mdc` 格式，需在复制层加格式转换 | 阶段 1 |
 | `agents/openai.yaml` 分发 | 装 Codex 时生效？其他工具忽略？ | 阶段 1 |
 | manifest 路径 | 建议 `.skills/manifest.json` 进版本控制 | 阶段 2 |
@@ -175,7 +175,7 @@
 
 ---
 
-## 附录：工具映射表（待阶段 1 实测后回填）
+## 附录 A：工具映射表（待阶段 1 实测后回填）
 
 | 工具 | 目标目录 | 格式要求 | 实测状态 |
 |---|---|---|---|
@@ -183,3 +183,36 @@
 | Claude Code | `.claude/skills/<name>/` | SKILL.md | 未验证 |
 | Cursor | `.cursor/rules/` | 疑似 `.mdc` | 未验证 |
 | Trae | `.trae/rules/` | 待确认 | 未验证 |
+
+---
+
+## 附录 B：分类治理原则（平铺多分类模型）
+
+### 模型定义
+
+分类目录只有一层，目录名即能力维度，各维度正交、可组合。项目按自身情况在 `skills.config.json` 的 `categories` 数组中组合勾选（如 Vue 项目：`["common", "frontend", "vue"]`；React 项目：`["common", "frontend", "react"]`；Node 服务：`["common", "backend"]`）。
+
+| 分类 | 维度 | 归入标准 | 现有内容 |
+|---|---|---|---|
+| `common/` | 技术无关 | 换掉语言/框架/运行时，规则仍然成立 | git-commit、file-naming、comment-rules、logic-comment-rules、requirement-first-implementation、monorepo-deps |
+| `frontend/` | 前端领域 · 选型无关 | 绑定前端领域，但不绑定具体框架（样式、TS 模块规范等） | scss-nesting、import-rules、export-rules |
+| `vue/`、`react/` | 框架选型（互斥平级） | 离开该选型规则就没有意义 | vue/ 含 vue3-vue-file-template、vue-page-structure；react/ 占位 |
+| `backend/` | 后端领域 · 选型无关 | 绑定后端领域，不绑定具体框架 | 占位 |
+| `business-*/` | 业务域（按需） | 绑定特定业务域的规则 | 暂无 |
+
+> 判例：TS 模块规范类规则（import/export）归 `frontend/` 而非 `common/`——`common/` 必须保持「换任何技术栈仍成立」的纯净度（Go/Python 项目勾选 common 不应装进 TS 规则），且别名（`@/* → src/*`）、API 导入风格依赖前端工程化配置。若未来出现 Node TS 后端消费需求，平级新增 `typescript/` 分类承接。
+
+### 归类判定链（新增 skill 时自上而下，首问命中即停）
+
+1. 换掉任何技术还成立 → `common/`
+2. 绑定前端但不绑定框架 → `frontend/`
+3. 离开某选型无意义 → 该选型目录（`vue/`、`react/`…）
+4. 跨多个选型或绑定业务域 → 拆分 / 上浮 / `business-*/`
+
+### 硬性约束
+
+1. **目录名 = `skills.config.json` 的 categories 值 = 交互式勾选项**，三者永远一致，kebab-case
+2. **互斥归档**：一个 skill 只属于一个分类；跨界的拆分或上浮，禁止一 skill 多档
+3. **分类目录永远一层**，不做嵌套子分类
+4. 新选型（如 `uniapp/`、`node/`、`rust/`）出现时平级新增目录，不动现有结构
+5. 演进预留：若未来确需一 skill 多维度，通过 frontmatter 增加 `tags` 字段向后兼容，而不是推翻目录约定
