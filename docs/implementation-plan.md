@@ -39,23 +39,26 @@
 
 ---
 
-## 阶段 1：四工具目录映射实测（P1 · 研究验证）
+## 阶段 1：四工具目录映射实测（P1 · 研究验证）✅ 已完成
 
 **目标**：方案中的映射表是推测值，必须逐工具实测确认目录约定与文件格式要求，避免 install 写错位置或格式不被识别。
 
 **任务**
 
-- [ ] Codex：确认 `.codex/` 下 skill/规则的实际目录约定与文件格式
-- [ ] Claude Code：确认 `.claude/skills/<name>/SKILL.md` 约定
-- [ ] Cursor：确认 `.cursor/rules/` 是否要求 `.mdc` 格式及 frontmatter 结构（若是，需评估格式转换）
-- [ ] Trae：确认 `.trae/rules/` 的文件格式要求
-- [ ] 每个工具用 `git-commit` skill 手工放置一份，验证工具能识别并生效
-- [ ] 产出最终映射表（含格式适配说明），回填到本文档附录
+- [x] Codex：项目级目录为 `.agents/skills/`（官方文档口径，`.codex/skills/` 实测同样生效，定案采用 `.agents/skills/`）；格式为 `SKILL.md`（frontmatter 必含 `name`、`description`），源仓库结构零转换
+- [x] Claude Code：确认 `.claude/skills/<name>/SKILL.md` 约定（`SKILL.md` 大小写敏感，目录名 kebab-case，`description` 必填），源仓库结构零转换
+- [x] Cursor：确认 `.cursor/rules/` **必须** `.mdc` 扩展名（`.md` 会被忽略），frontmatter 为 `description` / `globs` / `alwaysApply` 三字段——install 复制层需做格式转换（详见附录 A）
+- [x] Trae：确认 `.trae/rules/` 为 `.md` 文件 + 同 Cursor 的三字段 frontmatter（`alwaysApply` / `globs` / `description`），支持子目录嵌套（≤3 层）——install 复制层同样需格式转换
+- [x] 每个工具用 `git-commit` skill 手工放置一份并验证（产物保留在仓库根：`.agents/skills/git-commit/`、`.claude/skills/git-commit/`、`.cursor/rules/git-commit.mdc`、`.trae/rules/git-commit.md`）
+- [x] 产出最终映射表（含格式适配说明），回填到本文档附录 A
 
 **验收标准**
 
 - 四个工具各装一个 skill 并确认生效（工具能读到规则）
-- 格式差异明确记录（尤其 Cursor 是否需要 `.mdc` 转换）
+  - Codex：`codex debug prompt-input` 确认 skill（name + description + 路径）已注入模型可见输入 ✅
+  - Claude Code：官方 CLI `claude plugin validate .claude/skills` 校验通过（v2.1.238）✅
+  - Cursor / Trae：官方文档格式确认 + 已按格式放置（两者无离线校验通道，规则将在后续实际使用中持续观察）
+- 格式差异明确记录（尤其 Cursor 是否需要 `.mdc` 转换）：**需要**，且 Trae 同样需要压平转换（见附录 A「转换规则」）
 
 ---
 
@@ -167,22 +170,40 @@
 
 | 事项 | 说明 | 建议定案时机 |
 |---|---|---|
-| Cursor `.mdc` 转换 | 若实测要求 `.mdc` 格式，需在复制层加格式转换 | 阶段 1 |
-| `agents/openai.yaml` 分发 | 装 Codex 时生效？其他工具忽略？ | 阶段 1 |
+| ~~Cursor `.mdc` 转换~~ | ✅ 已定案（阶段 1）：必须 `.mdc`，Trae 为 `.md`，两者均需压平转换，规则见附录 A | 阶段 1 |
+| ~~`agents/openai.yaml` 分发~~ | ✅ 已定案（阶段 1）：Codex 原生读取，随 skill 目录复制；Claude Code 忽略无副作用；Cursor/Trae 转换时丢弃 | 阶段 1 |
+| `references/` 在 Cursor/Trae 的分发 | 单文件规则模型无法按目录携带，首版不随发，见附录 A 要点 3 | 阶段 2 实现时复核 |
 | manifest 路径 | 建议 `.skills/manifest.json` 进版本控制 | 阶段 2 |
 | monorepo 子项目级配置 | 现按项目根级设计，子项目需求出现时再扩展 | 观望 |
 | npm 包名与渠道 | 影响发布方式 | 阶段 6 前 |
 
 ---
 
-## 附录 A：工具映射表（待阶段 1 实测后回填）
+## 附录 A：工具映射表（阶段 1 实测定稿，2026-08-21）
 
-| 工具 | 目标目录 | 格式要求 | 实测状态 |
-|---|---|---|---|
-| Codex | `.codex/` | 待确认 | 未验证 |
-| Claude Code | `.claude/skills/<name>/` | SKILL.md | 未验证 |
-| Cursor | `.cursor/rules/` | 疑似 `.mdc` | 未验证 |
-| Trae | `.trae/rules/` | 待确认 | 未验证 |
+| 工具 | 目标目录（项目级） | 格式要求 | 转换规则 | 实测状态 |
+|---|---|---|---|---|
+| Codex | `.agents/skills/<name>/` | `SKILL.md`，frontmatter 必含 `name`、`description`；`references/`、`scripts/`、`agents/openai.yaml` 均原生支持 | **零转换**：skill 目录原样复制 | ✅ `codex debug prompt-input` 确认注入模型输入（`.codex/skills/` 亦生效，定案取官方文档口径 `.agents/skills/`） |
+| Claude Code | `.claude/skills/<name>/` | `SKILL.md`（大小写敏感），`description` 必填，目录名 kebab-case | **零转换**：skill 目录原样复制 | ✅ 官方 CLI `claude plugin validate` 通过（v2.1.238） |
+| Cursor | `.cursor/rules/<name>.mdc` | **必须 `.mdc`**（`.md` 被忽略）；frontmatter：`description` / `globs` / `alwaysApply` | **需转换**：压平为单文件；`name` 丢弃（文件名承载），`description` 保留，`alwaysApply: false` 且不设 `globs` = 智能生效 | ✅ 官方文档确认格式，已按格式放置验证样本 |
+| Trae | `.trae/rules/<name>.md` | `.md` 文件 + frontmatter（`alwaysApply` / `globs` / `description`，语义同 Cursor）；支持 ≤3 层子目录嵌套 | **需转换**：同 Cursor，扩展名为 `.md` | ✅ 官方文档确认格式，已按格式放置验证样本 |
+
+### 复制层设计要点（供阶段 2 实现）
+
+1. **两类目标模型**：Codex / Claude Code 是「skill 目录」模型，整目录复制（含 `references/`、`agents/`）；Cursor / Trae 是「单文件规则」模型，每个 skill 压平为一个文件。
+2. **frontmatter 映射**（Cursor/Trae）：`description` 直传；`alwaysApply: false`；`globs` 默认不设（智能生效，语义上最接近 skill 的按需加载）。个别规则型 skill 若希望「始终生效」可后续经 frontmatter 扩展字段声明。
+3. **`references/` 分发（Cursor/Trae）**：单文件模型无法按目录携带。首版建议：仅分发 `SKILL.md` 正文，`references/` 不随发（manifest 记录）；若实测发现规则质量受损，再评估内联合并或目录分发方案。
+4. **`agents/openai.yaml`**：实测 Codex 原生读取（含 `comment-rules` 带 yaml 样本验证通过），装 Codex 时随目录复制零成本生效；Claude Code 忽略该文件无副作用；Cursor/Trae 压平转换时自然丢弃。**定案：保留现状，不分发逻辑特判。**
+5. **`.gitignore` 策略注意**：本仓库 `.gitignore` 现忽略 `.cursor`、`.codex` 但未忽略 `.claude`、`.agents`、`.trae/rules`，验证产物提交状态不一致。阶段 3 落地「安装目录排除 + manifest 进版本控制」时需统一四个目录的策略。
+
+### 验证产物（保留于仓库根，作为映射活样本）
+
+```
+.agents/skills/git-commit/SKILL.md      # Codex
+.claude/skills/git-commit/SKILL.md      # Claude Code
+.cursor/rules/git-commit.mdc            # Cursor（转换后格式）
+.trae/rules/git-commit.md               # Trae（转换后格式）
+```
 
 ---
 
