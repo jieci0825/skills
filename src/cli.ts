@@ -59,6 +59,7 @@ program
 
 program
     .command('list')
+    .alias('ls')
     .description('列出源仓库中的全部 skills；--installed 对照 manifest 显示已装状态')
     .option('--installed', '显示当前项目已安装的 skills 及其状态（有更新 / 本地改动 / 缺失）')
     .option('--source <path-or-url>', '源仓库（git URL 或本地路径）')
