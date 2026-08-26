@@ -11,4 +11,6 @@ export default defineConfig({
     clean: true,
     // 包为 type:module，.js 即 ESM，保持 bin 路径 dist/cli.js 不变
     fixedExtension: false,
+    // 最小化产物，压缩代码减小体积
+    minify: true,
 })
