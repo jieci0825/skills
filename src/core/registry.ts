@@ -15,6 +15,8 @@ export interface ManifestEntry {
     tools: ToolId[]
     /** 首次安装时间（ISO），幂等重装时保留 */
     installedAt: string
+    /** flat 工具（Cursor/Trae）规则文件内容哈希，update 用于检测本地改动；旧 manifest 可能缺失 */
+    fileChecksums?: Partial<Record<ToolId, string>>
 }
 
 export interface Manifest {
@@ -27,16 +29,31 @@ export function manifestPath(cwd: string): string {
 }
 
 export async function loadManifest(cwd: string): Promise<Manifest | null> {
+    const filePath = manifestPath(cwd)
+    let raw: string
     try {
-        const raw = await readFile(manifestPath(cwd), 'utf-8')
-        const parsed = JSON.parse(raw) as Manifest
-        if (parsed?.version !== 1 || !Array.isArray(parsed.skills)) {
-            throw new Error('manifest 结构不合法')
-        }
-        return parsed
+        raw = await readFile(filePath, 'utf-8')
     } catch {
-        return null
+        return null // 尚未安装
     }
+
+    let parsed: Manifest
+    try {
+        parsed = JSON.parse(raw) as Manifest
+    } catch (e) {
+        throw new Error(
+            `.skills/manifest.json 不是合法 JSON：${(e as Error).message}\n  请修复或删除该文件后重新 install`,
+        )
+    }
+    const entriesValid =
+        Array.isArray(parsed?.skills) &&
+        parsed.skills.every(
+            (s) => typeof s?.name === 'string' && typeof s?.checksum === 'string' && Array.isArray(s?.tools),
+        )
+    if (parsed?.version !== 1 || !entriesValid) {
+        throw new Error('.skills/manifest.json 结构不合法。请修复或删除该文件后重新 install')
+    }
+    return parsed
 }
 
 export async function saveManifest(cwd: string, manifest: Manifest): Promise<void> {

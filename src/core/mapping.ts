@@ -1,8 +1,15 @@
+import { join } from 'node:path'
 import type { ToolId } from './config.js'
 import { stripFrontmatter, yamlQuote } from './frontmatter.js'
 
 /** 工具目标模型：dir = skill 目录原样复制；flat = 压平为单规则文件 */
 export type TargetFormat = 'dir' | 'flat'
+
+/** skill 在某工具下的落盘路径：dir 模型为目录，flat 模型为规则文件 */
+export function skillTargetPath(cwd: string, tool: ToolId, name: string): string {
+    const target = TOOL_TARGETS[tool]
+    return target.format === 'dir' ? join(cwd, target.dir, name) : join(cwd, target.dir, `${name}${target.ext}`)
+}
 
 export interface ToolTarget {
     /** 项目级目标目录（相对项目根） */

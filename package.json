@@ -1,6 +1,6 @@
 {
     "name": "skills-cli",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Skills 安装 CLI：从源仓库安装 AI 编码规则到 Codex / Claude Code / Cursor / Trae",
     "type": "module",
     "bin": {

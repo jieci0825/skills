@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename } from 'node:path'
 
@@ -38,6 +39,12 @@ export async function loadConfig(configPath: string): Promise<SkillsConfig> {
     }
 
     return validateConfig(parsed)
+}
+
+/** 配置存在则读取校验，不存在返回 null（供 list / update 等非强制场景） */
+export async function loadConfigIfExists(configPath: string): Promise<SkillsConfig | null> {
+    if (!existsSync(configPath)) return null
+    return loadConfig(configPath)
 }
 
 export function validateConfig(raw: unknown): SkillsConfig {

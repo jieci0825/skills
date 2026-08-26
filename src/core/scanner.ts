@@ -52,6 +52,31 @@ export async function scanRules(rulesDir: string): Promise<SkillCatalog> {
     return catalog
 }
 
+/** 展开分类为 skill 清单；分类不存在时报错并列出可选分类，同名 skill 去重（首见保留） */
+export function expandCategories(catalog: SkillCatalog, categories: string[], exclude: string[]): SkillInfo[] {
+    const missing = categories.filter((c) => !catalog.has(c))
+    if (missing.length > 0) {
+        const available = [...catalog.keys()].sort().join(' / ')
+        throw new Error(`配置引用了不存在的分类：${missing.join(' / ')}\n  源仓库可用的分类：${available || '（无）'}`)
+    }
+
+    const excluded = new Set(exclude)
+    const skills: SkillInfo[] = []
+    const seen = new Set<string>()
+    for (const category of categories) {
+        for (const skill of catalog.get(category)!) {
+            if (excluded.has(skill.name)) continue
+            if (seen.has(skill.name)) {
+                console.warn(`⚠ 不同分类下存在同名 skill「${skill.name}」（${category}），仅保留首个，已跳过`)
+                continue
+            }
+            seen.add(skill.name)
+            skills.push(skill)
+        }
+    }
+    return skills
+}
+
 async function listDirs(dir: string): Promise<string[]> {
     const entries = await readdir(dir, { withFileTypes: true })
     return entries.filter((e) => e.isDirectory()).map((e) => e.name)

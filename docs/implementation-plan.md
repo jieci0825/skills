@@ -86,33 +86,33 @@
 
 ---
 
-## 阶段 3：交互式 install + list（P2 · 首次体验）
+## 阶段 3：交互式 install + list（P2 · 首次体验）✅ 已完成
 
 **目标**：无配置的新项目一条命令完成安装，这是日常使用的主入口。
 
 **任务**
 
-- [ ] 交互式问答：多选分类（`common`/`frontend` 默认勾选；`vue`/`react` 等选型分类作为独立问题，可检测 `package.json` 依赖作推荐）→ 多选工具（检测项目内已存在的 `.codex/` 等目录作默认选中）
-- [ ] 问答结果生成并写入 `skills.config.json`，随后走 install 流程
-- [ ] `list` 命令：列出缓存源中所有 skills（名称、分类、描述）
-- [ ] `list --installed`：对照 manifest 显示项目已装及其状态（是否有更新、是否本地改动）
-- [ ] install 完成后输出 `.gitignore` 建议提示（安装目录应排除，团队成员各自 install）
+- [x] 交互式问答：多选分类（`common`/`frontend` 默认勾选；`vue`/`react` 等选型分类作为独立问题，可检测 `package.json` 依赖作推荐）→ 多选工具（检测项目内已存在的 `.agents`/`.claude`/`.cursor`/`.trae` 目录作默认选中，无任何标记时全选）——零依赖自研 raw-mode 问卷组件（`src/core/prompt.ts`：↑↓ 移动、空格勾选、a 全选/清空、回车确认、Ctrl-C 退出）
+- [x] 问答结果生成并写入 `skills.config.json`，随后走 install 流程（非 TTY 环境无配置时给出含示例的友好报错）
+- [x] `list` 命令：列出缓存源中所有 skills（名称、分类、描述）
+- [x] `list --installed`：对照 manifest 显示项目已装及其状态（是否有更新、是否本地改动、副本缺失、源已删除）
+- [x] install 完成后输出 `.gitignore` 建议提示（按所选工具列出具体目录 + manifest 纳入版本控制）
 
 **验收标准**
 
-- 全新项目零配置，一条交互命令完成安装
-- `list` 与 `list --installed` 输出信息准确
+- 全新项目零配置，一条交互命令完成安装 ✅（pty 实测：三问 → 生成配置 → 8 skill × 4 工具）
+- `list` 与 `list --installed` 输出信息准确 ✅
 
 ---
 
-## 阶段 4：update 漂移检测（P2 · 核心价值）
+## 阶段 4：update 漂移检测（P2 · 核心价值）✅ 已完成
 
 **目标**：实现复制模式下的安全更新，这是方案的核心卖点。
 
 **任务**
 
-- [ ] `update` 命令：pull 缓存 → 读 manifest → 逐 skill 三态比对（源当前 / 本地副本 / 安装时记录）
-- [ ] 实现决策表：
+- [x] `update` 命令：pull 缓存 → 读 manifest → 逐 skill 三态比对（源当前 / 本地副本 / 安装时记录）
+- [x] 实现决策表（另补两行：本地缺失 → 修复恢复；冲突以非零码退出便于 CI 感知）：
 
 | 本地副本 vs 安装时 | 源 vs 安装时 | 动作                            |
 | ------------------ | ------------ | ------------------------------- |
@@ -121,48 +121,53 @@
 | 一致               | 无变化       | 跳过                            |
 | —                  | 源已删除     | 交互提示是否清理                |
 
-- [ ] 配置中新勾选但未安装的 skill 在 update 时补装
-- [ ] 汇总输出：更新数 / 跳过数 / 冲突数
+- [x] 配置中新勾选但未安装的 skill 在 update 时补装
+- [x] 汇总输出：更新数 / 跳过数 / 冲突数（另含补装 / 修复 / 清理）
+
+**实现要点（补充定案）**
+
+- 本地改动检测：dir 模型（Codex/Claude）直接 `hashDir(本地目录) vs manifest.checksum`（安装为整目录复制，天然可比）；flat 模型（Cursor/Trae）在 manifest 新增 `fileChecksums` 记录落盘文件内容哈希（旧 manifest 无此字段时视为未修改，交由源侧比对决策）
+- update 覆盖或补装时保留 `installedAt`（首次安装时间语义）；manifest 仅在内容变化时写入
 
 **验收标准**
 
-- 本地未改 → 源更新后执行 update，副本被安全覆盖
-- 本地有修改 → update 不覆盖且有明确警告
-- 源删除的 skill 有清理提示
-- `--force` 可强制覆盖（覆盖前打印将丢弃的文件）
+- 本地未改 → 源更新后执行 update，副本被安全覆盖 ✅
+- 本地有修改 → update 不覆盖且有明确警告 ✅（dir / flat 两种模型均实测）
+- 源删除的 skill 有清理提示 ✅（交互确认清理 / 非交互保留并给出 remove 指引）
+- `--force` 可强制覆盖（覆盖前打印将丢弃的文件）✅
 
 ---
 
-## 阶段 5：remove + 收尾打磨（P3）
+## 阶段 5：remove + 收尾打磨（P3）✅ 已完成
 
 **任务**
 
-- [ ] `remove` 命令：按 manifest 卸载对应目录，支持 `remove <skill-name>` 单删与全删，清理 manifest
-- [ ] `agents/*.yaml` per-agent 适配策略完整落地（依阶段 1 结论）
-- [ ] 错误信息友好化：缓存 clone 失败、网络问题、配置 schema 错误等场景
-- [ ] `--help` 与各子命令帮助文档
-- [ ] 处理边界：skill 目录名冲突（不同分类同名 skill）、配置引用了不存在的分类
+- [x] `remove` 命令：按 manifest 卸载对应目录，支持 `remove <skill-name>...` 多删与 `remove --all` 全删（交互环境全删前确认；无参数时交互式多选），清理 manifest（清空后连 manifest 与空目录链一并剪枝）
+- [x] `agents/*.yaml` per-agent 适配策略完整落地（依阶段 1 结论）：Codex 随目录复制原生生效、Claude 忽略无副作用、Cursor/Trae 压平丢弃——阶段 2 已实现，本阶段复核确认
+- [x] 错误信息友好化：缓存 clone 失败、网络问题、配置 schema 错误（阶段 2 已备），本阶段补齐 manifest 损坏、remove 未知名、非交互无配置、update/remove 前未 install 等场景
+- [x] `--help` 与各子命令帮助文档（含示例块）
+- [x] 处理边界：skill 目录名冲突（不同分类同名 skill → 警告并保留首个）、配置引用了不存在的分类（报错列出可用分类，阶段 2 已备）
 
 **验收标准**
 
-- remove 后目录与 manifest 干净，不留残余
-- 常见错误场景有可读的报错指引
+- remove 后目录与 manifest 干净，不留残余 ✅（`--all` 后仅剩 skills.config.json，空目录链被剪枝）
+- 常见错误场景有可读的报错指引 ✅
 
 ---
 
-## 阶段 6：发布与文档（P3 · 收官）
+## 阶段 6：发布与文档（P3 · 收官）✅ 已完成
 
 **任务**
 
-- [ ] 定 npm 包名与发布渠道（public npm / private registry）
-- [ ] 验证 `npx <pkg> install` 全流程可用
-- [ ] 更新仓库 README：安装、配置格式、命令说明、目录结构
-- [ ] 版本号策略：semver，破坏性配置变更升 major
+- [x] 定 npm 包名与发布渠道：包名 `skills-cli`（package.json bin: `skills`），渠道 public npm；实际 `npm publish` 需在有 npm 凭据的终端执行（唯一剩余手动步骤）
+- [x] 验证 `npx <pkg> install` 全流程可用 ✅（`npm pack` → `npm exec --package=<tarball> -- skills install` 实测：按配置装 4 skill × 2 工具、manifest 正确）
+- [x] 更新仓库 README：安装、配置格式、命令说明、目录结构、update 决策表、团队协作建议、版本策略
+- [x] 版本号策略：semver，破坏性配置/manifest 结构变更升 major（README 已载明；当前 0.2.0）
 
 **验收标准**
 
-- 团队成员在他人的项目里 `npx` 一条命令完成安装
-- README 足以让新成员无引导上手
+- 团队成员在他人的项目里 `npx` 一条命令完成安装 ✅（tarball 实测通过，发布后即 `npx skills-cli install`）
+- README 足以让新成员无引导上手 ✅
 
 ---
 
@@ -174,8 +179,9 @@
 | ~~`agents/openai.yaml` 分发~~           | ✅ 已定案（阶段 1）：Codex 原生读取，随 skill 目录复制；Claude Code 忽略无副作用；Cursor/Trae 转换时丢弃                    | 阶段 1            |
 | ~~`references/` 在 Cursor/Trae 的分发~~ | ✅ 已定案（阶段 2）：按附录 A 要点 3 实现——仅分发 `SKILL.md` 正文，`references/` 不随发；后续实测规则质量受损再评估内联合并 | 阶段 2 实现时复核 |
 | ~~manifest 路径~~                       | ✅ 已定案（阶段 2）：`.skills/manifest.json`，无绝对路径，幂等重装字节级稳定，进版本控制                                    | 阶段 2            |
+| ~~flat 工具本地改动检测~~               | ✅ 已定案（阶段 4）：manifest 条目新增 `fileChecksums`（Cursor/Trae 落盘文件内容哈希），与 dir 模型 `hashDir` 比对共同覆盖  | 阶段 4            |
 | monorepo 子项目级配置                   | 现按项目根级设计，子项目需求出现时再扩展                                                                                    | 观望              |
-| npm 包名与渠道                          | 影响发布方式                                                                                                                | 阶段 6 前         |
+| ~~npm 包名与渠道~~                      | ✅ 已定案（阶段 6）：`skills-cli`，public npm；`npm publish` 待有凭据时执行                                                 | 阶段 6            |
 
 ---
 
@@ -194,7 +200,7 @@
 2. **frontmatter 映射**（Cursor/Trae）：`description` 直传；`alwaysApply: false`；`globs` 默认不设（智能生效，语义上最接近 skill 的按需加载）。个别规则型 skill 若希望「始终生效」可后续经 frontmatter 扩展字段声明。
 3. **`references/` 分发（Cursor/Trae）**：单文件模型无法按目录携带。首版建议：仅分发 `SKILL.md` 正文，`references/` 不随发（manifest 记录）；若实测发现规则质量受损，再评估内联合并或目录分发方案。
 4. **`agents/openai.yaml`**：实测 Codex 原生读取（含 `comment-rules` 带 yaml 样本验证通过），装 Codex 时随目录复制零成本生效；Claude Code 忽略该文件无副作用；Cursor/Trae 压平转换时自然丢弃。**定案：保留现状，不分发逻辑特判。**
-5. **`.gitignore` 策略注意**：本仓库 `.gitignore` 现忽略 `.cursor`、`.codex` 但未忽略 `.claude`、`.agents`、`.trae/rules`，验证产物提交状态不一致。阶段 3 落地「安装目录排除 + manifest 进版本控制」时需统一四个目录的策略。
+5. **`.gitignore` 策略**（✅ 已统一）：本仓库 `.gitignore` 已忽略全部工具目录（`.agents`、`.claude`、`.cursor`、`.trae`、`.codex`），阶段 1 验证产物仅以未跟踪状态保留在仓库根作映射活样本；CLI 侧则在 install 完成后按所选工具输出目标项目的 `.gitignore` 建议并提示 manifest 纳入版本控制。
 
 ### 验证产物（保留于仓库根，作为映射活样本）
 
