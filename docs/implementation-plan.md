@@ -68,7 +68,7 @@
 
 **任务**
 
-- [x] 初始化 CLI 工程：`package.json`（`bin: skills`、ESM、TypeScript）、`tsconfig.json`、构建方案 tsc，入口 `src/cli.ts`（commander）
+- [x] 初始化 CLI 工程：`package.json`（`bin: skills`、ESM、TypeScript）、`tsconfig.json`、入口 `src/cli.ts`（commander）；构建方案初版 tsc，后迁移为 tsdown（单文件 bundle，commander 内联，tsc 仅负责 `--noEmit` 类型检查）
 - [x] `src/core/checksum.ts`：单文件与目录级哈希计算（目录哈希按排序后的「相对路径 + 内容」归一化，排除顺序干扰；忽略 `.DS_Store`）
 - [x] `src/core/scanner.ts`：扫描 `rules/` 产出「分类 → skills 清单」，解析 `SKILL.md` frontmatter 取 name/description（`src/core/frontmatter.ts` 极简解析器）
 - [x] `src/core/config.ts`：`skills.config.json` 读写与 schema 校验（`categories` / `tools` / `exclude`，另支持可选 `source` 覆盖源仓库，便于本地开发与私有部署）
