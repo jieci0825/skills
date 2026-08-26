@@ -1,4 +1,4 @@
 interface:
-  display_name: "Comment Rules"
-  short_description: "Require doc comments for every function"
-  default_prompt: "Use $comment-rules to add required function documentation comments while editing code."
+    display_name: 'Comment Rules'
+    short_description: 'Require doc comments for every function'
+    default_prompt: 'Use $comment-rules to add required function documentation comments while editing code.'

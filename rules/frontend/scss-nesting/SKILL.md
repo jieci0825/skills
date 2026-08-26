@@ -14,4 +14,5 @@ description: 规范组件开发中 SCSS 的书写方式，要求必须使用嵌�
 示例见 [nesting-examples.md](references/nesting-examples.md)
 
 ## 补充说明
+
 - 嵌套层级建议不超过 **4 层**，过深时考虑调整 HTML 结构或拆分子组件。

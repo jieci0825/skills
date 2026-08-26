@@ -5,15 +5,15 @@
 
 ## 已定稿的设计决策（背景速览）
 
-| 决策项 | 结论 |
-|---|---|
+| 决策项   | 结论                                                                                                                                                        |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 分类机制 | 平铺多分类（一层目录）：`common/`、`frontend/`、`vue/`、`react/`、`backend/`、`business-*/`（按需）。分类是可组合的勾选项而非项目类型枚举，治理原则见附录 B |
-| 目标工具 | Codex、Claude Code、Cursor、Trae，仅项目级 |
-| 安装方式 | 纯复制（非 symlink），副本可独立修改 |
-| CLI 形态 | npm 包，`npx` 调用 |
-| 项目配置 | 有 `skills.config.json` 优先读取，没有则交互式问答生成 |
-| 源仓库 | CLI 托管缓存（`~/.skills/repo`，自动 clone/pull） |
-| 更新策略 | checksum 三态比对，绝不覆盖本地修改 |
+| 目标工具 | Codex、Claude Code、Cursor、Trae，仅项目级                                                                                                                  |
+| 安装方式 | 纯复制（非 symlink），副本可独立修改                                                                                                                        |
+| CLI 形态 | npm 包，`npx` 调用                                                                                                                                          |
+| 项目配置 | 有 `skills.config.json` 优先读取，没有则交互式问答生成                                                                                                      |
+| 源仓库   | CLI 托管缓存（`~/.skills/repo`，自动 clone/pull）                                                                                                           |
+| 更新策略 | checksum 三态比对，绝不覆盖本地修改                                                                                                                         |
 
 ---
 
@@ -25,9 +25,9 @@
 
 - [x] 创建分类目录：`rules/common/`、`rules/frontend/`、`rules/vue/`、`rules/backend/`、`rules/react/`（占位）；`rules/business-*/` 按需创建
 - [x] 迁移现有 11 个 skills 到对应分类：
-  - `common/`：`git-commit`、`file-naming`、`comment-rules`、`logic-comment-rules`、`requirement-first-implementation`、`monorepo-deps`（已定案归 common：通用的 monorepo 依赖策略，不绑定前端技术栈）
-  - `frontend/`：`scss-nesting`、`export-rules`、`import-rules`（前端领域通用，不绑定具体框架）
-  - `vue/`：`vue3-vue-file-template`、`vue-page-structure`（离开 Vue 无意义）
+    - `common/`：`git-commit`、`file-naming`、`comment-rules`、`logic-comment-rules`、`requirement-first-implementation`、`monorepo-deps`（已定案归 common：通用的 monorepo 依赖策略，不绑定前端技术栈）
+    - `frontend/`：`scss-nesting`、`export-rules`、`import-rules`（前端领域通用，不绑定具体框架）
+    - `vue/`：`vue3-vue-file-template`、`vue-page-structure`（离开 Vue 无意义）
 - [x] 迁移时保持 skill 内部结构不变（`SKILL.md`、`references/`、`agents/` 原样随目录移动）
 - [x] 检查各 `SKILL.md` frontmatter（`name`、`description`）完整，这是后续 scanner 解析的依据
 - [x] 提交 git（重组与功能改动分开提交，便于回溯）
@@ -55,34 +55,34 @@
 **验收标准**
 
 - 四个工具各装一个 skill 并确认生效（工具能读到规则）
-  - Codex：`codex debug prompt-input` 确认 skill（name + description + 路径）已注入模型可见输入 ✅
-  - Claude Code：官方 CLI `claude plugin validate .claude/skills` 校验通过（v2.1.238）✅
-  - Cursor / Trae：官方文档格式确认 + 已按格式放置（两者无离线校验通道，规则将在后续实际使用中持续观察）
+    - Codex：`codex debug prompt-input` 确认 skill（name + description + 路径）已注入模型可见输入 ✅
+    - Claude Code：官方 CLI `claude plugin validate .claude/skills` 校验通过（v2.1.238）✅
+    - Cursor / Trae：官方文档格式确认 + 已按格式放置（两者无离线校验通道，规则将在后续实际使用中持续观察）
 - 格式差异明确记录（尤其 Cursor 是否需要 `.mdc` 转换）：**需要**，且 Trae 同样需要压平转换（见附录 A「转换规则」）
 
 ---
 
-## 阶段 2：CLI 骨架 + 配置驱动 install（P1 · 核心闭环）
+## 阶段 2：CLI 骨架 + 配置驱动 install（P1 · 核心闭环）✅ 已完成
 
 **目标**：跑通最小价值链路——有配置文件的项目执行 `install`，完成复制并记录 manifest。
 
 **任务**
 
-- [ ] 初始化 CLI 工程：`package.json`（`bin` 字段、ESM、TypeScript）、`tsconfig.json`、构建方案（tsup 或 tsc）
-- [ ] `src/core/checksum.ts`：单文件与目录级哈希计算（目录哈希需对内容归一化，排除顺序干扰）
-- [ ] `src/core/scanner.ts`：扫描 `rules/` 产出「分类 → skills 清单」，解析 `SKILL.md` frontmatter 取 name/description
-- [ ] `src/core/config.ts`：`skills.config.json` 读写与 schema 校验（`categories` / `tools` / `exclude`）
-- [ ] `src/core/registry.ts`：manifest 读写（已装清单、安装时 checksum、目标工具）
-- [ ] 缓存管理：`ensureCache()`——`~/.skills/repo` 不存在则 clone，存在则 pull
-- [ ] `install` 命令（非交互路径）：读配置 → 展开分类 → 按映射复制到各工具目录 → 写 manifest
-- [ ] 复制时处理 skill 内的 `agents/` 子目录（按阶段 1 结论决定分发或跳过）
-- [ ] manifest 存放位置定案：建议 `.skills/manifest.json`，进版本控制（不含绝对路径）
+- [x] 初始化 CLI 工程：`package.json`（`bin: skills`、ESM、TypeScript）、`tsconfig.json`、构建方案 tsc，入口 `src/cli.ts`（commander）
+- [x] `src/core/checksum.ts`：单文件与目录级哈希计算（目录哈希按排序后的「相对路径 + 内容」归一化，排除顺序干扰；忽略 `.DS_Store`）
+- [x] `src/core/scanner.ts`：扫描 `rules/` 产出「分类 → skills 清单」，解析 `SKILL.md` frontmatter 取 name/description（`src/core/frontmatter.ts` 极简解析器）
+- [x] `src/core/config.ts`：`skills.config.json` 读写与 schema 校验（`categories` / `tools` / `exclude`，另支持可选 `source` 覆盖源仓库，便于本地开发与私有部署）
+- [x] `src/core/registry.ts`：manifest 读写（已装清单、安装时 checksum、目标工具、installedAt）
+- [x] 缓存管理：`ensureCache()`——`~/.skills/repo` 不存在则 clone，存在则 `set-url` + `pull --ff-only`；`source` 为本地目录时直接使用不落缓存
+- [x] `install` 命令（非交互路径）：读配置 → 展开分类（含 exclude、分类不存在报错列出可选项）→ 按映射复制到各工具目录 → 写 manifest
+- [x] 复制时处理 skill 内的 `agents/` 子目录：Codex / Claude Code 随目录原样复制（含 `references/`）；Cursor / Trae 压平为单文件时自然丢弃（`src/core/mapping.ts`）
+- [x] manifest 存放位置定案：`.skills/manifest.json`，无绝对路径；幂等重装时内容未变则保留 installedAt，manifest 字节级稳定
 
 **验收标准**
 
-- 在一个测试项目中，写好 `skills.config.json` 后执行 install，四个工具目录产物正确
-- manifest 记录每个已装 skill 的安装时 checksum
-- 重复执行 install 幂等，不产生脏数据
+- 在一个测试项目中，写好 `skills.config.json` 后执行 install，四个工具目录产物正确 ✅（11 个 skill，exclude 1 个，装 10 个 × 4 工具）
+- manifest 记录每个已装 skill 的安装时 checksum ✅（源 skill 目录级 SHA-256）
+- 重复执行 install 幂等，不产生脏数据 ✅（二次执行 manifest md5 一致；dir 模型先 rm 再 cp，无残留旧文件）
 
 ---
 
@@ -114,12 +114,12 @@
 - [ ] `update` 命令：pull 缓存 → 读 manifest → 逐 skill 三态比对（源当前 / 本地副本 / 安装时记录）
 - [ ] 实现决策表：
 
-| 本地副本 vs 安装时 | 源 vs 安装时 | 动作 |
-|---|---|---|
-| 一致（未改动） | 有更新 | 覆盖，更新 manifest |
-| 不一致（被改过） | 有更新 | 跳过 + 警告，`--force` 可强覆盖 |
-| 一致 | 无变化 | 跳过 |
-| — | 源已删除 | 交互提示是否清理 |
+| 本地副本 vs 安装时 | 源 vs 安装时 | 动作                            |
+| ------------------ | ------------ | ------------------------------- |
+| 一致（未改动）     | 有更新       | 覆盖，更新 manifest             |
+| 不一致（被改过）   | 有更新       | 跳过 + 警告，`--force` 可强覆盖 |
+| 一致               | 无变化       | 跳过                            |
+| —                  | 源已删除     | 交互提示是否清理                |
 
 - [ ] 配置中新勾选但未安装的 skill 在 update 时补装
 - [ ] 汇总输出：更新数 / 跳过数 / 冲突数
@@ -168,25 +168,25 @@
 
 ## 遗留待定项（实施中择机定案）
 
-| 事项 | 说明 | 建议定案时机 |
-|---|---|---|
-| ~~Cursor `.mdc` 转换~~ | ✅ 已定案（阶段 1）：必须 `.mdc`，Trae 为 `.md`，两者均需压平转换，规则见附录 A | 阶段 1 |
-| ~~`agents/openai.yaml` 分发~~ | ✅ 已定案（阶段 1）：Codex 原生读取，随 skill 目录复制；Claude Code 忽略无副作用；Cursor/Trae 转换时丢弃 | 阶段 1 |
-| `references/` 在 Cursor/Trae 的分发 | 单文件规则模型无法按目录携带，首版不随发，见附录 A 要点 3 | 阶段 2 实现时复核 |
-| manifest 路径 | 建议 `.skills/manifest.json` 进版本控制 | 阶段 2 |
-| monorepo 子项目级配置 | 现按项目根级设计，子项目需求出现时再扩展 | 观望 |
-| npm 包名与渠道 | 影响发布方式 | 阶段 6 前 |
+| 事项                                    | 说明                                                                                                                        | 建议定案时机      |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| ~~Cursor `.mdc` 转换~~                  | ✅ 已定案（阶段 1）：必须 `.mdc`，Trae 为 `.md`，两者均需压平转换，规则见附录 A                                             | 阶段 1            |
+| ~~`agents/openai.yaml` 分发~~           | ✅ 已定案（阶段 1）：Codex 原生读取，随 skill 目录复制；Claude Code 忽略无副作用；Cursor/Trae 转换时丢弃                    | 阶段 1            |
+| ~~`references/` 在 Cursor/Trae 的分发~~ | ✅ 已定案（阶段 2）：按附录 A 要点 3 实现——仅分发 `SKILL.md` 正文，`references/` 不随发；后续实测规则质量受损再评估内联合并 | 阶段 2 实现时复核 |
+| ~~manifest 路径~~                       | ✅ 已定案（阶段 2）：`.skills/manifest.json`，无绝对路径，幂等重装字节级稳定，进版本控制                                    | 阶段 2            |
+| monorepo 子项目级配置                   | 现按项目根级设计，子项目需求出现时再扩展                                                                                    | 观望              |
+| npm 包名与渠道                          | 影响发布方式                                                                                                                | 阶段 6 前         |
 
 ---
 
 ## 附录 A：工具映射表（阶段 1 实测定稿，2026-08-21）
 
-| 工具 | 目标目录（项目级） | 格式要求 | 转换规则 | 实测状态 |
-|---|---|---|---|---|
-| Codex | `.agents/skills/<name>/` | `SKILL.md`，frontmatter 必含 `name`、`description`；`references/`、`scripts/`、`agents/openai.yaml` 均原生支持 | **零转换**：skill 目录原样复制 | ✅ `codex debug prompt-input` 确认注入模型输入（`.codex/skills/` 亦生效，定案取官方文档口径 `.agents/skills/`） |
-| Claude Code | `.claude/skills/<name>/` | `SKILL.md`（大小写敏感），`description` 必填，目录名 kebab-case | **零转换**：skill 目录原样复制 | ✅ 官方 CLI `claude plugin validate` 通过（v2.1.238） |
-| Cursor | `.cursor/rules/<name>.mdc` | **必须 `.mdc`**（`.md` 被忽略）；frontmatter：`description` / `globs` / `alwaysApply` | **需转换**：压平为单文件；`name` 丢弃（文件名承载），`description` 保留，`alwaysApply: false` 且不设 `globs` = 智能生效 | ✅ 官方文档确认格式，已按格式放置验证样本 |
-| Trae | `.trae/rules/<name>.md` | `.md` 文件 + frontmatter（`alwaysApply` / `globs` / `description`，语义同 Cursor）；支持 ≤3 层子目录嵌套 | **需转换**：同 Cursor，扩展名为 `.md` | ✅ 官方文档确认格式，已按格式放置验证样本 |
+| 工具        | 目标目录（项目级）         | 格式要求                                                                                                       | 转换规则                                                                                                                | 实测状态                                                                                                        |
+| ----------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Codex       | `.agents/skills/<name>/`   | `SKILL.md`，frontmatter 必含 `name`、`description`；`references/`、`scripts/`、`agents/openai.yaml` 均原生支持 | **零转换**：skill 目录原样复制                                                                                          | ✅ `codex debug prompt-input` 确认注入模型输入（`.codex/skills/` 亦生效，定案取官方文档口径 `.agents/skills/`） |
+| Claude Code | `.claude/skills/<name>/`   | `SKILL.md`（大小写敏感），`description` 必填，目录名 kebab-case                                                | **零转换**：skill 目录原样复制                                                                                          | ✅ 官方 CLI `claude plugin validate` 通过（v2.1.238）                                                           |
+| Cursor      | `.cursor/rules/<name>.mdc` | **必须 `.mdc`**（`.md` 被忽略）；frontmatter：`description` / `globs` / `alwaysApply`                          | **需转换**：压平为单文件；`name` 丢弃（文件名承载），`description` 保留，`alwaysApply: false` 且不设 `globs` = 智能生效 | ✅ 官方文档确认格式，已按格式放置验证样本                                                                       |
+| Trae        | `.trae/rules/<name>.md`    | `.md` 文件 + frontmatter（`alwaysApply` / `globs` / `description`，语义同 Cursor）；支持 ≤3 层子目录嵌套       | **需转换**：同 Cursor，扩展名为 `.md`                                                                                   | ✅ 官方文档确认格式，已按格式放置验证样本                                                                       |
 
 ### 复制层设计要点（供阶段 2 实现）
 
@@ -213,13 +213,13 @@
 
 分类目录只有一层，目录名即能力维度，各维度正交、可组合。项目按自身情况在 `skills.config.json` 的 `categories` 数组中组合勾选（如 Vue 项目：`["common", "frontend", "vue"]`；React 项目：`["common", "frontend", "react"]`；Node 服务：`["common", "backend"]`）。
 
-| 分类 | 维度 | 归入标准 | 现有内容 |
-|---|---|---|---|
-| `common/` | 技术无关 | 换掉语言/框架/运行时，规则仍然成立 | git-commit、file-naming、comment-rules、logic-comment-rules、requirement-first-implementation、monorepo-deps |
-| `frontend/` | 前端领域 · 选型无关 | 绑定前端领域，但不绑定具体框架（样式、TS 模块规范等） | scss-nesting、import-rules、export-rules |
-| `vue/`、`react/` | 框架选型（互斥平级） | 离开该选型规则就没有意义 | vue/ 含 vue3-vue-file-template、vue-page-structure；react/ 占位 |
-| `backend/` | 后端领域 · 选型无关 | 绑定后端领域，不绑定具体框架 | 占位 |
-| `business-*/` | 业务域（按需） | 绑定特定业务域的规则 | 暂无 |
+| 分类             | 维度                 | 归入标准                                              | 现有内容                                                                                                     |
+| ---------------- | -------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `common/`        | 技术无关             | 换掉语言/框架/运行时，规则仍然成立                    | git-commit、file-naming、comment-rules、logic-comment-rules、requirement-first-implementation、monorepo-deps |
+| `frontend/`      | 前端领域 · 选型无关  | 绑定前端领域，但不绑定具体框架（样式、TS 模块规范等） | scss-nesting、import-rules、export-rules                                                                     |
+| `vue/`、`react/` | 框架选型（互斥平级） | 离开该选型规则就没有意义                              | vue/ 含 vue3-vue-file-template、vue-page-structure；react/ 占位                                              |
+| `backend/`       | 后端领域 · 选型无关  | 绑定后端领域，不绑定具体框架                          | 占位                                                                                                         |
+| `business-*/`    | 业务域（按需）       | 绑定特定业务域的规则                                  | 暂无                                                                                                         |
 
 > 判例：TS 模块规范类规则（import/export）归 `frontend/` 而非 `common/`——`common/` 必须保持「换任何技术栈仍成立」的纯净度（Go/Python 项目勾选 common 不应装进 TS 规则），且别名（`@/* → src/*`）、API 导入风格依赖前端工程化配置。若未来出现 Node TS 后端消费需求，平级新增 `typescript/` 分类承接。
 

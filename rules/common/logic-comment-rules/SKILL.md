@@ -82,7 +82,7 @@ description: 规范所有编程语言中较长或复杂函数的内部逻辑注�
 async function generateQueryTransform(
     query: string,
     model: string,
-    llmProvider: LlmProvider
+    llmProvider: LlmProvider,
 ): Promise<QueryTransformOutput> {
     // 构建首次请求所需的上下文，后续校验失败时会在此基础上追加修复信息。
     const messages: LlmMessage[] = [
@@ -127,7 +127,7 @@ async function generateQueryTransform(
             {
                 role: 'user',
                 content: JSON.stringify(validationResult.error.issues),
-            }
+            },
         )
     }
 

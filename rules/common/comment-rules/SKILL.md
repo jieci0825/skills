@@ -32,7 +32,7 @@ description: 规范所有文件中的函数文档注释。在编写、修改、�
  * 计算当前列表中可展示的结果数量。
  */
 export function getVisibleCount(items: Item[]) {
-  return items.filter((item) => item.visible).length
+    return items.filter((item) => item.visible).length
 }
 ```
 
@@ -44,6 +44,6 @@ export function getVisibleCount(items: Item[]) {
  * 说明输入中包含循环依赖，调用方应在上层给出错误提示。
  */
 export function resolveExecutionOrder(nodes: Node[]) {
-  // ...
+    // ...
 }
 ```

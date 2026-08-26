@@ -12,6 +12,7 @@ description: 决策 monorepo 架构中依赖包的安装位置。运行时依赖
 业务代码中会 `import` 并实际执行的依赖（如 `zod`、`axios`、`vue`、`react`、`lodash`、`dayjs`），即使多个子包都用到，也必须 **分别装到各自的子包** 的 `dependencies` 中。
 
 **理由：**
+
 - 子包 `package.json` 显式声明真实依赖，不依赖根目录的幽灵依赖。
 - 子包未来独立发布时，使用者安装它能自动拉取到 `zod` 等运行时依赖；若装在根目录，发布后会缺失依赖导致运行时报错。
 
@@ -20,6 +21,7 @@ description: 决策 monorepo 架构中依赖包的安装位置。运行时依赖
 只在开发 / 构建 / 测试阶段使用、不会被打包进产物的工具（如 `vitest`、`typescript`、`eslint`、`prettier`、`turbo`、`@types/*`），统一装到 **根目录的 `devDependencies`**。
 
 **理由：**
+
 - 整个仓库工具版本统一，避免子包间版本漂移。
 - 减少重复安装，节省 `node_modules` 体积与安装时间。
 
@@ -29,17 +31,17 @@ description: 决策 monorepo 架构中依赖包的安装位置。运行时依赖
 
 ```json
 {
-  "dependencies": {
-    "@org/shared": "workspace:*"
-  }
+    "dependencies": {
+        "@org/shared": "workspace:*"
+    }
 }
 ```
 
 ## 决策流程
 
 1. 这个依赖会被业务代码 `import` 且在运行时执行吗？
-   - 是 → 装到 **子包**（每个使用到的子包都要装一份）
+    - 是 → 装到 **子包**（每个使用到的子包都要装一份）
 2. 这个依赖是仓库内的另一个子包吗？
-   - 是 → 装到 **子包**，版本号写 `workspace:*`
+    - 是 → 装到 **子包**，版本号写 `workspace:*`
 3. 其他情况（构建 / 测试 / 校验类工具）
-   - → 装到 **根目录** 的 `devDependencies`
+    - → 装到 **根目录** 的 `devDependencies`

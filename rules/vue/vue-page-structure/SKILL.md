@@ -43,11 +43,11 @@ dashboard/
 
 ```vue
 <template>
-  <div class="dashboard">
-    <DashboardHeader />
-    <DashboardContent />
-    <DashboardFooter />
-  </div>
+    <div class="dashboard">
+        <DashboardHeader />
+        <DashboardContent />
+        <DashboardFooter />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -61,21 +61,21 @@ import DashboardFooter from './components/dashboard-footer.vue'
 
 ## 必须拆分的场景
 
-| 场景 | 说明 |
-|------|------|
-| 单文件超过 300 行 | 非绝对，但大多数情况都要遵循这个原则 |
-| 存在独立业务职责 | 如头部搜索、侧边筛选各自独立 |
-| 存在复用可能性 | 可能被其他页面或模块引用 |
-| 存在复杂状态/副作用 | 如定时器、WebSocket、复杂表单校验等 |
+| 场景                | 说明                                 |
+| ------------------- | ------------------------------------ |
+| 单文件超过 300 行   | 非绝对，但大多数情况都要遵循这个原则 |
+| 存在独立业务职责    | 如头部搜索、侧边筛选各自独立         |
+| 存在复用可能性      | 可能被其他页面或模块引用             |
+| 存在复杂状态/副作用 | 如定时器、WebSocket、复杂表单校验等  |
 
 ## 数据通信方式
 
-| 场景 | 方案 |
-|------|------|
-| 父子简单通信 | `props` / `emit` |
-| 跨层级通信 | `provide` / `inject` |
+| 场景           | 方案                   |
+| -------------- | ---------------------- |
+| 父子简单通信   | `props` / `emit`       |
+| 跨层级通信     | `provide` / `inject`   |
 | 页面级状态共享 | composable（`useXXX`） |
-| 全局状态 | Pinia |
+| 全局状态       | Pinia                  |
 
 ## 文件命名
 

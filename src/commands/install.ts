@@ -20,29 +20,20 @@ export interface InstallOptions {
 }
 
 /** install 主流程：读配置 → 展开分类 → 按映射复制到各工具目录 → 写 manifest */
-export async function runInstall(
-    cwd: string,
-    opts: InstallOptions = {}
-): Promise<void> {
+export async function runInstall(cwd: string, opts: InstallOptions = {}): Promise<void> {
     const configPath = opts.config ?? join(cwd, CONFIG_FILENAME)
     const config = await loadConfig(configPath)
 
     const rulesDir = await ensureCache(opts.source ?? config.source)
     const catalog = await scanRules(rulesDir)
 
-    const skills = resolveSkills(
-        catalog,
-        config.categories,
-        config.exclude ?? []
-    )
+    const skills = resolveSkills(catalog, config.categories, config.exclude ?? [])
     if (skills.length === 0) {
         throw new Error('选中的分类下没有任何 skill，请检查 categories 配置')
     }
 
     const previous = await loadManifest(cwd)
-    const previousByName = new Map(
-        (previous?.skills ?? []).map(e => [e.name, e])
-    )
+    const previousByName = new Map((previous?.skills ?? []).map((e) => [e.name, e]))
 
     const entries: ManifestEntry[] = []
     for (const skill of skills) {
@@ -73,17 +64,11 @@ export async function runInstall(
 }
 
 /** 展开分类为 skill 清单；分类不存在时报错并列出可选分类 */
-function resolveSkills(
-    catalog: Map<string, SkillInfo[]>,
-    categories: string[],
-    exclude: string[]
-): SkillInfo[] {
-    const missing = categories.filter(c => !catalog.has(c))
+function resolveSkills(catalog: Map<string, SkillInfo[]>, categories: string[], exclude: string[]): SkillInfo[] {
+    const missing = categories.filter((c) => !catalog.has(c))
     if (missing.length > 0) {
         const available = [...catalog.keys()].sort().join(' / ')
-        throw new Error(
-            `配置引用了不存在的分类：${missing.join(' / ')}\n  源仓库可用的分类：${available || '（无）'}`
-        )
+        throw new Error(`配置引用了不存在的分类：${missing.join(' / ')}\n  源仓库可用的分类：${available || '（无）'}`)
     }
 
     const excluded = new Set(exclude)
@@ -101,11 +86,7 @@ function resolveSkills(
 }
 
 /** 按工具映射安装单个 skill：dir 模型整目录复制；flat 模型压平为单文件 */
-async function installSkillForTool(
-    cwd: string,
-    tool: ToolId,
-    skill: SkillInfo
-): Promise<void> {
+async function installSkillForTool(cwd: string, tool: ToolId, skill: SkillInfo): Promise<void> {
     const target = TOOL_TARGETS[tool]
 
     if (target.format === 'dir') {
@@ -124,11 +105,7 @@ async function installSkillForTool(
     await writeFile(ruleFile, toFlatRule(skill.description, skillMd), 'utf-8')
 }
 
-function printSummary(
-    skills: SkillInfo[],
-    tools: ToolId[],
-    manifestFilePath: string
-): void {
+function printSummary(skills: SkillInfo[], tools: ToolId[], manifestFilePath: string): void {
     const byCategory = new Map<string, number>()
     for (const s of skills) {
         byCategory.set(s.category, (byCategory.get(s.category) ?? 0) + 1)

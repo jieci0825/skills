@@ -23,10 +23,10 @@ description: 当在 Vue3 项目中新建 .vue 文件时，自动生成标准的�
 
 在以下场景使用该 Skill：
 
-* 用户在 Vue3 项目中创建新的 `.vue` 组件文件
-* 需要为组件快速生成标准化基础模板
-* 需要保证团队项目中的 Vue 单文件组件结构一致
-* 需要根据项目是否使用 TypeScript 自动调整 `<script>` 标签配置
+- 用户在 Vue3 项目中创建新的 `.vue` 组件文件
+- 需要为组件快速生成标准化基础模板
+- 需要保证团队项目中的 Vue 单文件组件结构一致
+- 需要根据项目是否使用 TypeScript 自动调整 `<script>` 标签配置
 
 该 Skill 适用于所有 Vue3 单文件组件（SFC）创建场景。
 
@@ -70,19 +70,17 @@ description: 当在 Vue3 项目中新建 .vue 文件时，自动生成标准的�
 
 生成模板时需要遵循以下规范：
 
-* `<script setup>` 必须放在文件最顶部
-* `<template>` 放在 `<script>` 之后
-* `<style>` 必须使用 `scoped`
-* `<style>` 默认使用 `scss`
-* 标签之间保留一个空行，保持代码可读性
+- `<script setup>` 必须放在文件最顶部
+- `<template>` 放在 `<script>` 之后
+- `<style>` 必须使用 `scoped`
+- `<style>` 默认使用 `scss`
+- 标签之间保留一个空行，保持代码可读性
 
 ## 最终目标
 
 确保 Vue3 项目中新建 `.vue` 文件时：
 
-* 结构统一
-* 代码整洁
-* 自动适配 TypeScript 或 JavaScript 项目
-* 减少重复手动编写模板的操作
-
-
+- 结构统一
+- 代码整洁
+- 自动适配 TypeScript 或 JavaScript 项目
+- 减少重复手动编写模板的操作
