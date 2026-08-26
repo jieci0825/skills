@@ -10,8 +10,8 @@
         "dist"
     ],
     "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch",
+        "build": "tsdown",
+        "dev": "tsdown --watch",
         "typecheck": "tsc --noEmit",
         "format": "prettier --write ."
     },
@@ -27,12 +27,11 @@
         "trae"
     ],
     "license": "MIT",
-    "dependencies": {
-        "commander": "^14.0.0"
-    },
     "devDependencies": {
         "@types/node": "^24.13.3",
+        "commander": "^14.0.0",
         "prettier": "^3.9.6",
+        "tsdown": "^0.22.14",
         "typescript": "^5.9.0"
     }
 }
