@@ -1,0 +1,36 @@
+{
+    "name": "skills-cli",
+    "version": "0.1.0",
+    "description": "Skills 安装 CLI：从源仓库安装 AI 编码规则到 Codex / Claude Code / Cursor / Trae",
+    "type": "module",
+    "bin": {
+        "skills": "dist/cli.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "typecheck": "tsc --noEmit"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "keywords": [
+        "skills",
+        "ai",
+        "codex",
+        "claude",
+        "cursor",
+        "trae"
+    ],
+    "license": "MIT",
+    "dependencies": {
+        "commander": "^14.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.13.3",
+        "typescript": "^5.9.0"
+    }
+}
