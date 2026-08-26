@@ -4,7 +4,8 @@
     "description": "Skills 安装 CLI：从源仓库安装 AI 编码规则到 Codex / Claude Code / Cursor / Trae",
     "type": "module",
     "bin": {
-        "skills": "dist/cli.js"
+        "jcsk": "dist/cli.js",
+        "jcskills": "dist/cli.js"
     },
     "files": [
         "dist"
@@ -13,7 +14,9 @@
         "build": "tsdown",
         "dev": "tsdown --watch",
         "typecheck": "tsc --noEmit",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "link:fresh": "bash scripts/link-fresh.sh",
+        "link:check": "bash scripts/check-stale-links.sh"
     },
     "engines": {
         "node": ">=18"
